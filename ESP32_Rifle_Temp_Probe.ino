@@ -3,6 +3,7 @@
 #include <Adafruit_ST7789.h>
 #include <driver/adc.h>
 #include "esp_adc_cal.h"
+#include <SPI.h>
 
 // Define pins for the thermistors and battery voltage measurement
 const int AmbientPin = 2;
@@ -49,13 +50,15 @@ const int displayUpdateInterval = 100;  // Display update interval in ms (10 tim
 #define TFT_RST  23    // Reset pin
 #define TFT_DC   16    // Data/command pin
 #define TFT_BL   4     // Backlight control pin
-Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+SPIClass hspi(HSPI);
+Adafruit_ST7789 tft = Adafruit_ST7789(&hspi, TFT_CS, TFT_DC, TFT_RST);
 
 //ADC calibration variable
 esp_adc_cal_characteristics_t adc_chars;
 
 void setup() {
   Serial.begin(115200);  // Initialize the serial port for debugging (optional)
+  hspi.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
 
   // ADC calibration
   esp_adc_cal_value_t val_type = esp_adc_cal_characterize((adc_unit_t)ADC_UNIT_1, (adc_atten_t)ADC_ATTEN_DB_11, (adc_bits_width_t)ADC_WIDTH_BIT_12, 1100, &adc_chars);
@@ -172,4 +175,3 @@ void updateTemperatureDisplay(const char* label, float samples[], int x, int y, 
     prevTemp = currentTemp;
   }
 }
-
